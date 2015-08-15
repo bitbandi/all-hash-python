@@ -1,0 +1,62 @@
+#!/usr/bin/make -f
+
+export DH_VERBOSE=1
+
+HASH_SUBDIRS := bastion-hash \
+		blake-sfr-hash \
+		dcrypt-hash \
+		groestl-hash \
+		keccak-hash \
+		luffa-hash \
+		lyra2re-hash \
+		magi-hash \
+		myrgroestl-hash \
+		nist5-hash \
+		pentablake-hash \
+		quark-hash \
+		qubit-hash \
+		scrypt-hash \
+		skein-hash \
+		twe-hash \
+		whirlcoin-hash \
+		x11-hash \
+		x13-hash \
+		x14-hash \
+		x15-hash \
+		yescrypt-hash
+
+override_dh_auto_build:
+	for hash in $(HASH_SUBDIRS); do \
+	  dh_auto_build --sourcedirectory=algorithm/$$hash \
+	        --buildsystem=python_distutils \
+	        --parallel ;\
+	done
+
+override_dh_auto_clean:
+	for hash in $(HASH_SUBDIRS); do \
+	  dh_auto_clean --sourcedirectory=algorithm/$$hash \
+	        --buildsystem=python_distutils \
+	        --parallel ;\
+	done
+
+override_dh_auto_install:
+	for hash in $(HASH_SUBDIRS); do \
+#	  dh_auto_install --sourcedirectory=algorithm/$$hash \
+#	      --buildsystem=python_distutils \
+#	        --parallel ;\
+	  python setup.py clean --all ;\
+	done
+
+override_dh_auto_test:
+ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
+	for hash in $(HASH_SUBDIRS); do \
+	  dh_auto_test --sourcedirectory=algorithm/$$hash \
+	      --buildsystem=python_distutils \
+	        --parallel || true ;\
+	done
+else
+	@echo "nocheck set, not running tests"
+endif
+
+%:
+	dh $@ --parallel --with python2 --buildsystem=python_distutils
